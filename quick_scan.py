@@ -26,6 +26,7 @@ SAMPS_PER_STEP = 32768             # raw samples captured at each frequency
 SETTLE_SAMPLES = 4096              # samples thrown away right after retuning
 NUM_PEAKS = 5                      # how many strongest signals to report
 MIN_PEAK_SPACING_HZ = 200e3        # don't report two peaks closer than this
+LO_LEAKAGE_MASK_HZ = 10e3          # width to null out on each side of the center-frequency (DC) bin
 
 
 def capture_chunk(usrp, center_freq):
@@ -61,6 +62,16 @@ def compute_spectrum(samples, center_freq):
     freqs = np.fft.fftshift(np.fft.fftfreq(FFT_SIZE, d=1 / SAMPLE_RATE))
     freqs_hz = freqs + center_freq
 
+    # The USRP's zero-IF architecture leaks its local oscillator straight
+    # into the DC bin, which always lands exactly on center_freq, with a
+    # skirt extending a few kHz to either side. Null out a fixed-width
+    # frequency window (rather than a fixed bin count) so the mask stays
+    # correct if FFT_SIZE or SAMPLE_RATE ever change.
+    bin_width_hz = SAMPLE_RATE / FFT_SIZE
+    mask_bins = int(np.ceil(LO_LEAKAGE_MASK_HZ / bin_width_hz))
+    center_idx = FFT_SIZE // 2
+    power_db[center_idx - mask_bins : center_idx + mask_bins + 1] = np.nan
+
     return freqs_hz, power_db
 
 
@@ -72,6 +83,8 @@ def find_peaks(freqs_hz, power_db, num_peaks=NUM_PEAKS):
 
     peaks = []
     for idx in order:
+        if np.isnan(power_db[idx]):
+            continue
         f = freqs_hz[idx]
         if all(abs(f - pf) > MIN_PEAK_SPACING_HZ for pf, _ in peaks):
             peaks.append((f, power_db[idx]))
