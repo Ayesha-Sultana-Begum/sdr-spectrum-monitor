@@ -1,0 +1,9 @@
+# Python virtual environment (machine-specific, recreate with requirements.txt)
+.venv/
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+
+# Generated output (plots produced by quick_scan.py)
+*.png
