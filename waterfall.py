@@ -14,6 +14,8 @@ Run it with:
     python waterfall.py
 """
 
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -32,6 +34,7 @@ SETTLE_SAMPLES = 4096               # samples thrown away right after retuning
 LO_LEAKAGE_MASK_HZ = 10e3           # width to null out on each side of the center-frequency (DC) bin
 HISTORY_ROWS = 100                  # how many past rows the waterfall keeps on screen
 FRAME_INTERVAL_MS = 100             # delay between animation updates (~10 updates/sec)
+SNAPSHOT_PATH = "results/waterfall_example.png"  # where the final frame is saved on close
 
 
 def capture_chunk(usrp, center_freq):
@@ -135,6 +138,15 @@ def main():
         blit=True,
         cache_frame_data=False,
     )
+
+    def on_close(event):
+        """Fired by matplotlib when the plot window is closing. Saves
+        whatever the waterfall looked like at that final moment."""
+        os.makedirs(os.path.dirname(SNAPSHOT_PATH), exist_ok=True)
+        fig.savefig(SNAPSHOT_PATH)
+        print(f"Saved snapshot to {SNAPSHOT_PATH}")
+
+    fig.canvas.mpl_connect("close_event", on_close)
 
     plt.show()
 
