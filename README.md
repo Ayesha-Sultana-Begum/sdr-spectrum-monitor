@@ -60,6 +60,26 @@ The script will:
    terminal.
 5. Save a plot to `fm_spectrum.png` in this folder.
 
+## Results
+
+### FM band scan
+
+![FM spectrum scan](results/fm_spectrum_example.png)
+
+Output of `quick_scan.py`: power (dB) vs. frequency across the full
+88–108 MHz FM broadcast band, stitched together from each retuned segment.
+The marked peaks are the strongest signals found — likely local FM stations.
+
+### Live waterfall
+
+![Live waterfall display](results/waterfall_example.png)
+
+A saved snapshot of `waterfall.py`'s live display: frequency (MHz) on the
+x-axis, time (frames ago, newest at the bottom) on the y-axis, and color
+showing power (dB). The white vertical gap in the middle is the ±10 kHz
+LO-leakage mask blanking out the local-oscillator artifact at the tuned
+center frequency.
+
 ## Project structure
 
 ```
